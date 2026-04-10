@@ -1,131 +1,148 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const pool = require('../config/database');
 
-// Mock user database
-const users = [];
+// Database tables are pre-created in MySQL.
 
 exports.register = async (req, res) => {
+  let connection;
   try {
     const { email, password, first_name, last_name, role, phone } = req.body;
+
+    console.log('📝 Register attempt:', { email, role });
 
     // Validate required fields
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    connection = await pool.getConnection();
+
     // Check if user exists
-    const existingUser = users.find(u => u.email === email);
-    if (existingUser) {
+    const [existingUser] = await connection.query(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
+    
+    if (existingUser.length > 0) {
+      console.log('❌ User already exists:', email);
       return res.status(400).json({ error: 'User already exists' });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const newUser = {
-      id: users.length + 1,
-      email,
-      password: hashedPassword,
-      first_name: first_name || '',
-      last_name: last_name || '',
-      role: role || 'candidate',
-      phone: phone || '',
-      created_at: new Date()
-    };
+    // Insert user
+    const [result] = await connection.query(
+      'INSERT INTO users (email, password, first_name, last_name, role, phone) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, hashedPassword, first_name || '', last_name || '', role || 'candidate', phone || '']
+    );
 
-    users.push(newUser);
+    const userId = result.insertId;
+    console.log('✅ User created:', { userId, email, role });
+
+    // If candidate, create profile
+    if (role === 'candidate' || !role) {
+      await connection.query(
+        'INSERT INTO candidate_profiles (user_id) VALUES (?)',
+        [userId]
+      );
+      console.log('✅ Candidate profile created:', userId);
+    }
 
     // Generate token
     const token = jwt.sign(
-      { id: newUser.id, email, role: newUser.role },
+      { id: userId, email, role: role || 'candidate' },
       process.env.JWT_SECRET || 'smartjob_portal_secret_key_2024',
       { expiresIn: '7d' }
     );
 
+    console.log('✅ Token generated for:', email);
+
     res.status(201).json({
       message: 'User registered successfully',
-      user: { id: newUser.id, email, first_name, last_name, role: newUser.role },
+      user: { id: userId, email, first_name, last_name, role: role || 'candidate' },
       token
     });
   } catch (error) {
-    console.error('Registration error:', error.message, error.stack);
+    console.error('❌ Registration error:', error.message);
     res.status(500).json({ error: 'Registration failed', details: error.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
 exports.login = async (req, res) => {
+  let connection;
   try {
     const { email, password } = req.body;
 
-    const user = users.find(u => u.email === email);
-    if (!user) {
+    console.log('🔐 Login attempt:', email);
+
+    connection = await pool.getConnection();
+
+    // Find user
+    const [users] = await connection.query(
+      'SELECT id, password, first_name, last_name, role FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (users.length === 0) {
+      console.log('❌ User not found:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const user = users[0];
+
+    // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('❌ Invalid password for:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Generate token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email, role: user.role },
       process.env.JWT_SECRET || 'smartjob_portal_secret_key_2024',
       { expiresIn: '7d' }
     );
 
+    console.log('✅ Login successful:', email);
+
     res.json({
       message: 'Login successful',
-      user: { id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role },
+      user: { id: user.id, email, first_name: user.first_name, last_name: user.last_name, role: user.role },
       token
     });
   } catch (error) {
-    console.error('Login error:', error.message, error.stack);
+    console.error('❌ Login error:', error.message);
     res.status(500).json({ error: 'Login failed', details: error.message });
+  } finally {
+    if (connection) connection.release();
   }
-};
-
-exports.getUserProfile = (req, res) => {
-  try {
-    const user = users.find(u => u.id === req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        role: user.role,
-        phone: user.phone
-      }
-    });
-  } catch (error) {
-    console.error('Profile error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch profile' });
-  }
-};
 };
 
 exports.getUserProfile = async (req, res) => {
+  let connection;
   try {
-    const user = users.find(u => u.id === req.user.id);
-    if (!user) {
+    connection = await pool.getConnection();
+
+    const [users] = await connection.query(
+      'SELECT id, email, first_name, last_name, role, phone, created_at FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (users.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json({
-      id: user.id,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role,
-      phone: user.phone,
-      created_at: user.created_at
-    });
+
+    const user = users[0];
+    res.json(user);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch profile' });
+  } finally {
+    if (connection) connection.release();
   }
 };

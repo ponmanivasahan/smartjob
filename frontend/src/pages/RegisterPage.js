@@ -120,6 +120,43 @@ const RegisterPage = () => {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Register As</label>
+            <div className="space-y-2">
+              <div className="flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50"
+                   onClick={() => setFormData({ ...formData, role: 'candidate' })}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="candidate"
+                  checked={formData.role === 'candidate'}
+                  onChange={handleChange}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <label className="ml-3 cursor-pointer flex-1">
+                  <span className="font-semibold text-gray-800">Candidate</span>
+                  <span className="text-sm text-gray-600 block">Job seeker / Professional</span>
+                </label>
+              </div>
+
+              <div className="flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50"
+                   onClick={() => setFormData({ ...formData, role: 'admin' })}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={formData.role === 'admin'}
+                  onChange={handleChange}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <label className="ml-3 cursor-pointer flex-1">
+                  <span className="font-semibold text-gray-800">Admin</span>
+                  <span className="text-sm text-gray-600 block">Employer / HR Manager</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
