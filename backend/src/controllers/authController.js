@@ -94,8 +94,20 @@ exports.login = async (req, res) => {
 
     const user = users[0];
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Check password (supports legacy plain-text rows and upgrades them to bcrypt)
+    let isPasswordValid = false;
+    const isBcryptHash = typeof user.password === 'string' && user.password.startsWith('$2');
+
+    if (isBcryptHash) {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+      isPasswordValid = password === user.password;
+      if (isPasswordValid) {
+        const upgradedHash = await bcrypt.hash(password, 10);
+        await connection.query('UPDATE users SET password = ? WHERE id = ?', [upgradedHash, user.id]);
+      }
+    }
+
     if (!isPasswordValid) {
       console.log('❌ Invalid password for:', email);
       return res.status(401).json({ error: 'Invalid credentials' });

@@ -18,11 +18,12 @@ const LoginPage = () => {
 
     try {
       const response = await api.post('/auth/login', { email, password });
-      setUser(response.data.user, response.data.token);
-      toast.success('Login successful!');
-      
-      // Redirect based on role
-      if (response.data.user.role === 'admin') {
+      const loggedInUser = response.data.user;
+
+      setUser(loggedInUser, response.data.token);
+      toast.success('Login successful');
+
+      if (loggedInUser.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/candidate/dashboard');
@@ -35,10 +36,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">SmartJob Portal</h1>
-        
+    <div className="min-h-screen bg-gradient-to-r from-blue-700 to-cyan-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">SmartJob Portal</h1>
+        <p className="text-gray-600 text-center mb-6">Sign in with your account</p>
+
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -49,6 +51,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
+                autoComplete="email"
                 className="ml-2 outline-none w-full"
                 required
               />
@@ -64,6 +67,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                autoComplete="current-password"
                 className="ml-2 outline-none w-full"
                 required
               />
@@ -78,10 +82,6 @@ const LoginPage = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-
-        <p className="text-center text-gray-600 mt-4">
-          Don't have an account? <a href="/register" className="text-blue-600 font-bold hover:underline">Register</a>
-        </p>
       </div>
     </div>
   );

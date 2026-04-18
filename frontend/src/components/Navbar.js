@@ -1,12 +1,25 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { IoLogOut, IoHome, IoPersonCircle } from 'react-icons/io5';
 import useAuthStore from '../store/authStore';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, logout } = useAuthStore();
+
+  const handleHome = () => {
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard');
+      return;
+    }
+
+    if (user?.role === 'candidate') {
+      navigate('/candidate/dashboard');
+      return;
+    }
+
+    navigate('/login');
+  };
 
   const handleLogout = () => {
     logout();
@@ -17,7 +30,7 @@ const Navbar = () => {
     <nav className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center cursor-pointer" onClick={handleHome}>
             <IoHome className="text-2xl mr-2" />
             <span className="text-xl font-bold">SmartJob Portal</span>
           </div>

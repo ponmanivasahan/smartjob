@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { IoBriefcase, IoBook, IoCheckmark, IoCalendar } from 'react-icons/io5';
-import api from '../../utils/api';
-import useAuthStore from '../../store/authStore';
-import CandidateOverviewTab from './components/CandidateOverviewTab';
-import CandidateApplicationsTab from './components/CandidateApplicationsTab';
-import CandidateLearningTab from './components/CandidateLearningTab';
-import CandidateInterviewsTab from './components/CandidateInterviewsTab';
-import CandidateProfileTab from './components/CandidateProfileTab';
+import api from '../../../utils/api';
+import useAuthStore from '../../../store/authStore';
+import CandidateOverviewTab from './CandidateOverviewTab';
+import CandidateApplicationsTab from './CandidateApplicationsTab';
+import CandidateLearningTab from './CandidateLearningTab';
+import CandidateInterviewsTab from './CandidateInterviewsTab';
+import CandidateProfileTab from './CandidateProfileTab';
 
 const CandidateDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -29,7 +29,7 @@ const CandidateDashboard = () => {
         learningProgress: 0,
         upcomingInterviews: 0,
       });
-    } catch {
+    } catch (error) {
       console.error('Failed to fetch stats');
     }
   };

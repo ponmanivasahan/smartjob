@@ -15,8 +15,8 @@ const HomePage = () => {
               <Link to="/login" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition">
                 Login
               </Link>
-              <Link to="/register" className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-600 transition">
-                Register
+              <Link to="/login" className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-600 transition">
+                Continue
               </Link>
             </div>
           </div>
@@ -90,8 +90,8 @@ const HomePage = () => {
                 <li className="flex items-center"><span className="text-green-600 mr-2">✓</span> Access learning resources</li>
                 <li className="flex items-center"><span className="text-green-600 mr-2">✓</span> Track applications</li>
               </ul>
-              <Link to="/register" className="inline-flex items-center bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
-                Candidate Register <IoArrowForward className="ml-2" />
+              <Link to="/login" className="inline-flex items-center bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                Candidate Login <IoArrowForward className="ml-2" />
               </Link>
             </div>
           </div>
