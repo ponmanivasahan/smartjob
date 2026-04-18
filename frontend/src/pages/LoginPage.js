@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoMail, IoLockClosed } from 'react-icons/io5';
 import api from '../utils/api';
@@ -10,7 +10,20 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
+  const { setUser, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (user.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+      return;
+    }
+
+    navigate('/candidate/dashboard', { replace: true });
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
